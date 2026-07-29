@@ -3,9 +3,11 @@
 // ============================================================
 
 async function renderDashboard() {
-  const stats      = await StatsHelper.getStats();
-  const activities = await ActivityStore.getAll();
-  const products   = await ProductStore.getAll();
+  const [stats, activities, products] = await Promise.all([
+    StatsHelper.getStats(),
+    ActivityStore.getAll(),
+    ProductStore.getAll()
+  ]);
 
   const main = document.getElementById('main-content');
   main.innerHTML = `

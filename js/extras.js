@@ -78,9 +78,11 @@ window.clearNotifications = clearNotifications;
 
 // ─── Analytics View ───────────────────────────────────────
 async function renderAnalytics() {
-  const products = await ProductStore.getAll();
-  const stats = await StatsHelper.getStats();
-  const activities = await ActivityStore.getAll();
+  const [products, stats, activities] = await Promise.all([
+    ProductStore.getAll(),
+    StatsHelper.getStats(),
+    ActivityStore.getAll()
+  ]);
   const main = document.getElementById('main-content');
 
   // Category breakdown
@@ -261,13 +263,16 @@ async function initMap(productId) {
 
   const map = L.map('leaflet-map', {
     zoomControl: true,
-    preferCanvas: true   // Better performance, fewer DOM z-index issues
+    preferCanvas: true,
+    maxBounds: [[-90, -180], [90, 180]],
+    maxBoundsViscosity: 1.0
   }).setView([20, 78], 3);
   window._leafletMap = map;
 
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '© OpenStreetMap contributors',
-    maxZoom: 18
+    maxZoom: 18,
+    noWrap: true
   }).addTo(map);
 
   const products = productId ? [await ProductStore.getById(productId)].filter(Boolean) : await ProductStore.getAll();
@@ -314,7 +319,7 @@ async function initMap(productId) {
     if (points.length > 1) {
       L.polyline(points, { color: '#6366f1', weight: 2.5, opacity: 0.6, dashArray: '6,4' }).addTo(map);
     }
-  });
+  }
 
   // Fit map to markers
   if (allPoints.length > 0) {

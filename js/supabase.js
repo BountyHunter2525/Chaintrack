@@ -140,8 +140,10 @@ const ActivityStore = {
 const StatsHelper = {
   async getStats() {
     try {
-      const products = await ProductStore.getAll();
-      const chains   = await DB.select('chains');
+      const [products, chains] = await Promise.all([
+        ProductStore.getAll(),
+        DB.select('chains')
+      ]);
       let totalTransfers = 0;
       (chains || []).forEach(c => {
         if (c.chain_data && c.chain_data.length > 1)
