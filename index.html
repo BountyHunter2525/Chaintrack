@@ -232,13 +232,29 @@
   window.hideUserMenu = hideUserMenu;
 
   // ── Global Search ────────────────────────────────────────
-  function handleGlobalSearch(query) {
-    if (!query) return;
-    Router.navigate('products');
-    setTimeout(() => {
+  let _globalSearchTimer = null;
+  async function handleGlobalSearch(query) {
+    clearTimeout(_globalSearchTimer);
+    if (!query) {
+      if (AppState.currentView === 'products') {
+        const searchInput = document.getElementById('product-search');
+        if (searchInput) {
+          searchInput.value = '';
+          if (window.filterProducts) window.filterProducts('');
+        }
+      }
+      return;
+    }
+    _globalSearchTimer = setTimeout(async () => {
+      if (AppState.currentView !== 'products') {
+        await Router.navigate('products');
+      }
       const searchInput = document.getElementById('product-search');
-      if (searchInput) { searchInput.value = query; filterProducts(query); }
-    }, 300);
+      if (searchInput) { 
+        searchInput.value = query; 
+        if (window.filterProducts) window.filterProducts(query); 
+      }
+    }, 400);
   }
 
   // ── QR Hash URL Routing ──────────────────────────────────

@@ -114,11 +114,13 @@ async function renderDashboard() {
       </div>
 
       <!-- Product Journey Chart -->
-      <div class="card chart-card">
+      <div class="card chart-card" style="display:flex; flex-direction:column;">
         <div class="card-header">
           <h3 class="card-title">📊 Pipeline Status</h3>
         </div>
-        <canvas id="pipeline-chart" height="200"></canvas>
+        <div style="position:relative; flex:1; min-height:220px; width:100%; padding-bottom:16px;">
+          <canvas id="pipeline-chart"></canvas>
+        </div>
       </div>
 
       <!-- Recent Products -->

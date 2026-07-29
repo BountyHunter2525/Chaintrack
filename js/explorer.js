@@ -56,6 +56,10 @@ async function renderExplorer() {
       </div>
     </div>
 
+    <div class="card" style="margin-bottom: 24px; padding: 16px;">
+      <input type="text" id="explorer-search" class="form-input" placeholder="Search by Product ID, Hash, or Action..." style="width:100%; max-width: 600px;" onkeyup="filterExplorer(this.value)">
+    </div>
+
     <div class="card">
       <div class="card-header">
         <h3 class="card-title">Latest Blocks</h3>
@@ -67,35 +71,41 @@ async function renderExplorer() {
               <th style="padding:12px; color:var(--text-muted); font-weight:600; font-size:12px;">Height</th>
               <th style="padding:12px; color:var(--text-muted); font-weight:600; font-size:12px;">Age</th>
               <th style="padding:12px; color:var(--text-muted); font-weight:600; font-size:12px;">Product</th>
-              <th style="padding:12px; color:var(--text-muted); font-weight:600; font-size:12px;">Type</th>
-              <th style="padding:12px; color:var(--text-muted); font-weight:600; font-size:12px;">Hash</th>
+              <th style="padding:12px; color:var(--text-muted); font-weight:600; font-size:12px;">Action</th>
+              <th style="padding:12px; color:var(--text-muted); font-weight:600; font-size:12px;">Hash & Prev Hash</th>
               <th style="padding:12px; color:var(--text-muted); font-weight:600; font-size:12px;">Nonce</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody id="explorer-tbody">
             ${allBlocks.map(b => {
               const age = getTimeAgo(b.timestamp);
               return `
-                <tr style="border-bottom:1px solid var(--border-color); font-size:14px; transition:background 0.2s;">
-                  <td style="padding:12px;">
+                <tr class="explorer-row" data-search="${b.productId} ${b.hash} ${b.previousHash} ${b.data.action || b.data.type}" style="border-bottom:1px solid var(--border-color); font-size:14px; transition:background 0.2s;">
+                  <td style="padding:12px; vertical-align:top;">
                     <span class="badge" style="background:#3b82f622; color:#3b82f6;">#${b.index}</span>
                   </td>
-                  <td style="padding:12px; color:var(--text-secondary);">${age}</td>
-                  <td style="padding:12px;">
-                    <div style="display:flex; align-items:center; gap:8px;">
+                  <td style="padding:12px; color:var(--text-secondary); vertical-align:top; white-space:nowrap;">${age}</td>
+                  <td style="padding:12px; vertical-align:top;">
+                    <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
                       <span>${b.productEmoji}</span>
                       <a href="#product:${b.productId}" onclick="Router.navigate('detail', {productId:'${b.productId}'}); return false;" style="color:var(--text-primary); text-decoration:none; font-weight:500;">
                         ${b.productName}
                       </a>
                     </div>
+                    <div style="font-size:11px; color:var(--text-muted); font-family:monospace;">${b.productId}</div>
                   </td>
-                  <td style="padding:12px;">${b.data.type || 'TRANSFER'}</td>
-                  <td style="padding:12px;">
-                    <div style="font-family:monospace; color:var(--accent-green); background:#10b98111; padding:4px 8px; border-radius:4px; font-size:12px;">
-                      ${b.hash.substring(0, 16)}...
+                  <td style="padding:12px; vertical-align:top;">${b.data.action || b.data.type || 'TRANSFER'}</td>
+                  <td style="padding:12px; vertical-align:top; max-width:300px;">
+                    <div style="font-size:11px; color:var(--text-muted); margin-bottom:2px;">Hash</div>
+                    <div style="font-family:monospace; color:var(--accent-green); background:#10b98111; padding:4px 8px; border-radius:4px; font-size:11px; word-break:break-all; margin-bottom:8px; line-height:1.4;">
+                      ${b.hash}
+                    </div>
+                    <div style="font-size:11px; color:var(--text-muted); margin-bottom:2px;">Prev Hash</div>
+                    <div style="font-family:monospace; color:var(--text-secondary); background:var(--bg-tertiary); padding:4px 8px; border-radius:4px; font-size:11px; word-break:break-all; line-height:1.4;">
+                      ${b.previousHash}
                     </div>
                   </td>
-                  <td style="padding:12px; font-family:monospace; color:var(--text-secondary);">${b.nonce}</td>
+                  <td style="padding:12px; font-family:monospace; color:var(--text-secondary); vertical-align:top;">${b.nonce}</td>
                 </tr>
               `;
             }).join('')}
@@ -104,6 +114,15 @@ async function renderExplorer() {
       </div>
     </div>
   `;
+}
+
+function filterExplorer(query) {
+  const rows = document.querySelectorAll('.explorer-row');
+  const term = query.toLowerCase().trim();
+  rows.forEach(row => {
+    const text = (row.dataset.search || '').toLowerCase();
+    row.style.display = text.includes(term) ? '' : 'none';
+  });
 }
 
 function getTimeAgo(dateString) {

@@ -264,6 +264,15 @@ async function handleAddProduct(event) {
 
   if (window.showMining) window.showMining('Mining Genesis Block...');
 
+  const city = document.getElementById('pcity').value;
+  const country = document.getElementById('pcountry').value;
+  
+  // Geocode location (defaults to 0,0 if not found)
+  let coords = { lat: 0, lng: 0 };
+  if (window.geocodeLocation) {
+    coords = await window.geocodeLocation(city, country);
+  }
+
   const productId = generateProductId();
   const product = {
     id: productId,
@@ -272,9 +281,10 @@ async function handleAddProduct(event) {
     sku: document.getElementById('psku').value,
     manufacturer: document.getElementById('pmanufacturer').value,
     manufacturerLocation: {
-      city: document.getElementById('pcity').value,
-      country: document.getElementById('pcountry').value,
-      lat: 0, lng: 0
+      city: city,
+      country: country,
+      lat: coords.lat, 
+      lng: coords.lng
     },
     description: document.getElementById('pdesc').value,
     status: 'manufactured',

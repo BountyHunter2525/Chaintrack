@@ -581,3 +581,35 @@ function checkAuth() {
 }
 
 window.checkAuth = checkAuth;
+
+// ─── Geocoding Helper ────────────────────────────────────
+async function geocodeLocation(city, country) {
+  if (!city && !country) return { lat: 0, lng: 0 };
+  
+  try {
+    const q = encodeURIComponent(`${city ? city + ',' : ''} ${country}`);
+    const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${q}&limit=1`, {
+      headers: {
+        'Accept': 'application/json',
+        'User-Agent': 'ChainTrackDemo/1.0'
+      }
+    });
+    
+    if (res.ok) {
+      const data = await res.json();
+      if (data && data.length > 0) {
+        return {
+          lat: parseFloat(data[0].lat),
+          lng: parseFloat(data[0].lon)
+        };
+      }
+    }
+  } catch (err) {
+    console.warn("Geocoding failed, falling back to 0,0", err);
+  }
+  
+  // Fallback to 0,0 if not found or errored
+  return { lat: 0, lng: 0 };
+}
+
+window.geocodeLocation = geocodeLocation;

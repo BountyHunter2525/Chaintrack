@@ -202,15 +202,25 @@ async function handleTransfer(event, productId) {
     const chain = await ChainStore.getChain(productId);
     if (!chain) throw new Error('Chain not found');
 
+    const city = document.getElementById('tcity').value;
+    const country = document.getElementById('tcountry').value;
+    
+    // Geocode location
+    let coords = { lat: 0, lng: 0 };
+    if (window.geocodeLocation) {
+      coords = await window.geocodeLocation(city, country);
+    }
+
     const blockData = {
       productId,
       actor: newOwner,
       role: nextRole.role,
       action: nextRole.action,
       location: {
-        city: document.getElementById('tcity').value,
-        country: document.getElementById('tcountry').value,
-        lat: 0, lng: 0
+        city: city,
+        country: country,
+        lat: coords.lat, 
+        lng: coords.lng
       },
       status: nextRole.status,
       condition: document.getElementById('tcondition').value,
