@@ -179,9 +179,13 @@
 ═══════════════════════════════════════════════════════ -->
 <div id="loading-overlay" role="dialog" aria-label="Processing">
   <div class="loading-card">
-    <div class="loading-spinner"></div>
-    <div class="loading-title">⛏️ Mining Block</div>
+    <div class="loading-spinner" id="loading-spinner"></div>
+    <div class="loading-title" id="loading-title">⛏️ Mining Block</div>
     <div id="loading-message">Processing...</div>
+    <div id="mining-hash-display" class="mining-hash" style="display:none">
+      <div class="hash-label">Computing Hash <span id="mining-nonce" class="nonce-badge">Nonce: 0</span></div>
+      <code id="mining-hash-value">0000000000000000000000000000000000000000000000000000000000000000</code>
+    </div>
   </div>
 </div>
 
@@ -196,6 +200,7 @@
 <script src="js/detail.js"></script>
 <script src="js/transfer.js"></script>
 <script src="js/extras.js"></script>
+<script src="js/explorer.js"></script>
 
 <script>
   // ── Role Picker ──────────────────────────────────────────

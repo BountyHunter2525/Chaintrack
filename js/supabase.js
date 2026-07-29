@@ -145,13 +145,19 @@ const StatsHelper = {
         DB.select('chains')
       ]);
       let totalTransfers = 0;
+      let totalBlocks = 0;
       (chains || []).forEach(c => {
-        if (c.chain_data && c.chain_data.length > 1)
-          totalTransfers += c.chain_data.length - 1;
+        if (c.chain_data) {
+          totalBlocks += c.chain_data.length;
+          if (c.chain_data.length > 1) {
+            totalTransfers += c.chain_data.length - 1;
+          }
+        }
       });
       return {
         totalProducts:   products.length,
         totalTransfers,
+        totalBlocks,
         delivered:       products.filter(p => p.status === 'delivered').length,
         inTransit:       products.filter(p => p.status === 'in_transit').length,
         manufactured:    products.filter(p => p.status === 'manufactured').length

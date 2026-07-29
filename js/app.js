@@ -22,7 +22,8 @@ const Router = {
     'verify':        (p) => renderVerify(p),
     'analytics':     (p) => renderAnalytics(p),
     'map':           (p) => renderMap(p),
-    'notifications': (p) => renderNotificationsPanel(p)
+    'notifications': (p) => renderNotificationsPanel(p),
+    'explorer':      (p) => renderExplorer(p)
   },
 
   _navId: 0, // tracks current navigation to cancel stale renders
@@ -94,9 +95,31 @@ function showNotification(message, type = 'success') {
 }
 
 // ─── Loading Overlay ──────────────────────────────────────
-function showLoading(message = 'Mining block...') {
-  document.getElementById('loading-overlay').style.display = 'flex';
+function showLoading(message = 'Processing...') {
+  const overlay = document.getElementById('loading-overlay');
+  document.getElementById('loading-title').textContent = 'Processing';
   document.getElementById('loading-message').textContent = message;
+  document.getElementById('mining-hash-display').style.display = 'none';
+  document.getElementById('loading-spinner').style.display = 'block';
+  overlay.style.display = 'flex';
+}
+
+function showMining(message = 'Mining Block...') {
+  const overlay = document.getElementById('loading-overlay');
+  document.getElementById('loading-title').textContent = '⛏️ Mining Block';
+  document.getElementById('loading-message').textContent = message;
+  document.getElementById('mining-hash-display').style.display = 'block';
+  document.getElementById('loading-spinner').style.display = 'none';
+  document.getElementById('mining-hash-value').textContent = '0000000000000000000000000000000000000000000000000000000000000000';
+  document.getElementById('mining-nonce').textContent = 'Nonce: 0';
+  overlay.style.display = 'flex';
+}
+
+function updateMiningHash(hash, nonce) {
+  const val = document.getElementById('mining-hash-value');
+  const non = document.getElementById('mining-nonce');
+  if (val) val.textContent = hash;
+  if (non) non.textContent = `Nonce: ${nonce}`;
 }
 
 function hideLoading() {
@@ -175,6 +198,8 @@ window.Router = Router;
 window.AppState = AppState;
 window.showNotification = showNotification;
 window.showLoading = showLoading;
+window.showMining = showMining;
+window.updateMiningHash = updateMiningHash;
 window.hideLoading = hideLoading;
 window.formatDate = formatDate;
 window.formatHash = formatHash;

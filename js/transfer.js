@@ -195,8 +195,8 @@ async function handleTransfer(event, productId) {
 
   const btn = document.getElementById('transfer-btn');
   btn.disabled = true;
-  btn.textContent = '⛏️ Mining...';
-  document.getElementById('mining-preview-t').style.display = 'flex';
+  
+  if (window.showMining) window.showMining('Mining Transfer Block...');
 
   try {
     const chain = await ChainStore.getChain(productId);
@@ -218,7 +218,9 @@ async function handleTransfer(event, productId) {
       transferDate: document.getElementById('tdate').value
     };
 
-    await chain.addBlock(blockData);
+    await chain.addBlock(blockData, (hash, nonce) => {
+      if (window.updateMiningHash) window.updateMiningHash(hash, nonce);
+    });
 
     // Update product record
     product.status = nextRole.status;
@@ -226,24 +228,24 @@ async function handleTransfer(event, productId) {
     product.currentRole = nextRole.role;
     product.lastUpdated = new Date().toISOString();
 
-    ProductStore.save(product);
-    ChainStore.saveChain(productId, chain);
+    await ProductStore.save(product);
+    await ChainStore.saveChain(productId, chain);
 
-    ActivityStore.add({
+    await ActivityStore.add({
       type: 'transfer',
       message: `${product.name} → ${nextRole.role}: ${newOwner}`,
       productId,
       icon: nextRole.icon
     });
 
+    if (window.hideLoading) window.hideLoading();
     showNotification(`✅ Transferred to ${nextRole.role}: ${newOwner}!`, 'success');
     Router.navigate('detail', { productId });
   } catch (err) {
     console.error(err);
+    if (window.hideLoading) window.hideLoading();
     showNotification('Transfer failed. Try again.', 'error');
     btn.disabled = false;
-    btn.textContent = '🔄 Execute Transfer';
-    document.getElementById('mining-preview-t').style.display = 'none';
   }
 }
 

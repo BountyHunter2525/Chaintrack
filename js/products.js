@@ -261,8 +261,8 @@ async function handleAddProduct(event) {
 
   const btn = document.getElementById('submit-btn');
   btn.disabled = true;
-  btn.textContent = '⛏️ Mining...';
-  document.getElementById('mining-preview').style.display = 'flex';
+
+  if (window.showMining) window.showMining('Mining Genesis Block...');
 
   const productId = generateProductId();
   const product = {
@@ -293,25 +293,27 @@ async function handleAddProduct(event) {
       location: product.manufacturerLocation,
       sku: product.sku,
       category: product.category
+    }, (hash, nonce) => {
+      if (window.updateMiningHash) window.updateMiningHash(hash, nonce);
     });
 
-    ProductStore.save(product);
-    ChainStore.saveChain(product.id, bc);
-    ActivityStore.add({
+    await ProductStore.save(product);
+    await ChainStore.saveChain(product.id, bc);
+    await ActivityStore.add({
       type: 'registered',
       message: `${product.name} registered by ${product.manufacturer}`,
       productId: product.id,
       icon: product.imageEmoji
     });
 
+    if (window.hideLoading) window.hideLoading();
     showNotification(`✅ ${product.name} registered on blockchain!`, 'success');
     Router.navigate('detail', { productId: product.id });
   } catch (err) {
     console.error(err);
+    if (window.hideLoading) window.hideLoading();
     showNotification('Error mining block. Try again.', 'error');
     btn.disabled = false;
-    btn.textContent = '⛓️ Register on Blockchain';
-    document.getElementById('mining-preview').style.display = 'none';
   }
 }
 

@@ -50,10 +50,31 @@ async function renderDashboard() {
       <div class="stat-card" style="--accent: #3b82f6">
         <div class="stat-icon">⛓️</div>
         <div class="stat-info">
-          <div class="stat-value">${stats.totalTransfers}</div>
-          <div class="stat-label">Transfers</div>
+          <div class="stat-value">${stats.totalBlocks}</div>
+          <div class="stat-label">Blocks Mined</div>
         </div>
         <div class="stat-trend">On-chain</div>
+      </div>
+    </div>
+
+    <!-- Network Health Banner -->
+    <div class="network-health-banner card" style="display: flex; justify-content: space-between; align-items: center; padding: 16px 24px; margin-bottom: 24px; background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(16, 185, 129, 0.02)); border-color: rgba(16, 185, 129, 0.2);">
+      <div style="display: flex; align-items: center; gap: 16px;">
+        <div style="font-size: 24px;">🌐</div>
+        <div>
+          <h3 style="margin: 0; font-size: 16px; color: var(--text-primary);">Network Health</h3>
+          <p style="margin: 0; font-size: 13px; color: var(--text-secondary);">ChainTrack Decentralized Ledger is fully operational.</p>
+        </div>
+      </div>
+      <div style="display: flex; gap: 24px;">
+        <div>
+          <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">Current Difficulty</div>
+          <div style="font-family: monospace; font-size: 16px; color: var(--text-primary); font-weight: bold;">${window.DIFFICULTY || 3}</div>
+        </div>
+        <div>
+          <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">Algorithm</div>
+          <div style="font-family: monospace; font-size: 16px; color: var(--text-primary); font-weight: bold;">SHA-256</div>
+        </div>
       </div>
     </div>
 

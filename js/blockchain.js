@@ -3,7 +3,7 @@
 // Supply Chain Tracker | SHA-256 + Proof-of-Work simulation
 // ============================================================
 
-const DIFFICULTY = 2; // Number of leading zeros required
+const DIFFICULTY = 3; // Number of leading zeros required
 
 // SHA-256 hash using Web Crypto API
 async function sha256(message) {
@@ -29,12 +29,20 @@ class Block {
     return await sha256(content);
   }
 
-  async mine(difficulty) {
+  async mine(difficulty, onHashUpdate) {
     const target = '0'.repeat(difficulty);
     do {
       this.nonce++;
       this.hash = await this.calculateHash();
+      
+      // Update UI and yield to event loop every 20 iterations
+      if (this.nonce % 20 === 0) {
+        if (onHashUpdate) onHashUpdate(this.hash, this.nonce);
+        await new Promise(r => setTimeout(r, 0));
+      }
     } while (!this.hash.startsWith(target));
+    
+    if (onHashUpdate) onHashUpdate(this.hash, this.nonce);
     return this.hash;
   }
 }
@@ -45,7 +53,7 @@ class Blockchain {
     this.chain = [];
   }
 
-  async createGenesisBlock(productData) {
+  async createGenesisBlock(productData, onHashUpdate) {
     const block = new Block({
       index: 0,
       data: {
@@ -59,19 +67,19 @@ class Blockchain {
       },
       previousHash: '0000000000000000000000000000000000000000000000000000000000000000'
     });
-    await block.mine(DIFFICULTY);
+    await block.mine(DIFFICULTY, onHashUpdate);
     this.chain = [block];
     return block;
   }
 
-  async addBlock(data) {
+  async addBlock(data, onHashUpdate) {
     const previousBlock = this.chain[this.chain.length - 1];
     const block = new Block({
       index: this.chain.length,
       data: { type: 'TRANSFER', ...data },
       previousHash: previousBlock.hash
     });
-    await block.mine(DIFFICULTY);
+    await block.mine(DIFFICULTY, onHashUpdate);
     this.chain.push(block);
     return block;
   }
