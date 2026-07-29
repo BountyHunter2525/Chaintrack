@@ -78,9 +78,9 @@ window.clearNotifications = clearNotifications;
 
 // ─── Analytics View ───────────────────────────────────────
 async function renderAnalytics() {
-  const products = ProductStore.getAll();
+  const products = await ProductStore.getAll();
   const stats = await StatsHelper.getStats();
-  const activities = ActivityStore.getAll();
+  const activities = await ActivityStore.getAll();
   const main = document.getElementById('main-content');
 
   // Category breakdown
@@ -197,9 +197,9 @@ async function renderAnalytics() {
 window.renderAnalytics = renderAnalytics;
 
 // ─── Map View ─────────────────────────────────────────────
-function renderMap(params) {
+async function renderMap(params) {
   const productId = params?.productId || AppState.selectedProductId;
-  const products = ProductStore.getAll();
+  const products = await ProductStore.getAll();
   const main = document.getElementById('main-content');
 
   main.innerHTML = `
@@ -243,7 +243,7 @@ function renderMap(params) {
   }
 }
 
-function initMap(productId) {
+async function initMap(productId) {
   const L = window.L;
   if (!L) return;
 
@@ -270,15 +270,15 @@ function initMap(productId) {
     maxZoom: 18
   }).addTo(map);
 
-  const products = productId ? [ProductStore.getById(productId)].filter(Boolean) : ProductStore.getAll();
+  const products = productId ? [await ProductStore.getById(productId)].filter(Boolean) : await ProductStore.getAll();
   const allPoints = [];
   const locationList = [];
 
   const roleColors = { 'Manufacturer': '#6366f1', 'Distributor': '#f59e0b', 'Retailer': '#10b981', 'Customer': '#3b82f6' };
 
-  products.forEach(product => {
-    const chain = ChainStore.getChain(product.id);
-    if (!chain) return;
+  for (const product of products) {
+    const chain = await ChainStore.getChain(product.id);
+    if (!chain) continue;
 
     const points = [];
     chain.chain.forEach((block, i) => {
@@ -355,10 +355,10 @@ window.switchMapProduct = switchMapProduct;
 
 // ─── PDF Export ───────────────────────────────────────────
 async function exportProductPDF(productId) {
-  const product = ProductStore.getById(productId || AppState.selectedProductId);
+  const product = await ProductStore.getById(productId || AppState.selectedProductId);
   if (!product) { showNotification('Select a product first', 'warning'); return; }
 
-  const chain = ChainStore.getChain(product.id);
+  const chain = await ChainStore.getChain(product.id);
   const blocks = chain ? chain.chain : [];
 
   // Verify authenticity
