@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ChainTrack — Blockchain Supply Chain Tracker</title>
+  <meta name="description" content="Track products from manufacturer to customer with blockchain-powered transparency, QR codes, and real-time authenticity verification." />
+  <meta name="keywords" content="supply chain, blockchain, product tracking, QR code, authenticity" />
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="styles/main.css" />
+
+  <!-- External Libraries -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+  <!-- Favicon -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⛓️</text></svg>" />
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════
+     LOGIN OVERLAY
+═══════════════════════════════════════════════════════ -->
+<div id="login-overlay" style="display:none">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="logo-icon" style="width:56px;height:56px;font-size:28px;margin:0 auto 16px">⛓️</div>
+      <h1 class="login-title">ChainTrack</h1>
+      <p class="login-subtitle">Blockchain Supply Chain Tracker</p>
+    </div>
+
+    <form class="login-form" onsubmit="handleLogin(event)">
+      <div class="form-group">
+        <label class="form-label">Your Name *</label>
+        <input type="text" class="form-input" id="login-name" placeholder="Enter your full name" required autocomplete="name" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Your Role *</label>
+        <div class="role-picker" id="role-picker">
+          <div class="role-option" data-role="Manufacturer" onclick="selectRole('Manufacturer', this)">
+            <div class="role-icon">🏭</div>
+            <div class="role-label">Manufacturer</div>
+          </div>
+          <div class="role-option" data-role="Distributor" onclick="selectRole('Distributor', this)">
+            <div class="role-icon">🚚</div>
+            <div class="role-label">Distributor</div>
+          </div>
+          <div class="role-option" data-role="Retailer" onclick="selectRole('Retailer', this)">
+            <div class="role-icon">🏪</div>
+            <div class="role-label">Retailer</div>
+          </div>
+          <div class="role-option" data-role="Customer" onclick="selectRole('Customer', this)">
+            <div class="role-icon">👤</div>
+            <div class="role-label">Customer</div>
+          </div>
+        </div>
+        <input type="hidden" id="login-role" value="Manufacturer" />
+      </div>
+      <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;padding:12px">
+        🚀 Enter Dashboard
+      </button>
+    </form>
+
+    <p class="login-footer">Secured by SHA-256 blockchain • No data leaves your browser</p>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     APP SHELL
+═══════════════════════════════════════════════════════ -->
+<div id="app-shell-wrapper" class="app-shell" style="display:none">
+
+  <!-- ── Sidebar ─────────────────────────────────────────── -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon">⛓️</div>
+      <div class="logo-text">
+        <div class="logo-title">ChainTrack</div>
+        <div class="logo-sub">Blockchain Supply Chain</div>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Overview</div>
+      <button class="nav-item active" data-view="dashboard" id="nav-dashboard">
+        <span class="nav-icon">📊</span> Dashboard
+      </button>
+      <button class="nav-item" data-view="analytics" id="nav-analytics">
+        <span class="nav-icon">📈</span> Analytics
+      </button>
+
+      <div class="nav-section-label">Products</div>
+      <button class="nav-item" data-view="products" id="nav-products">
+        <span class="nav-icon">📦</span> All Products
+      </button>
+      <button class="nav-item" data-view="add-product" id="nav-add-product">
+        <span class="nav-icon">➕</span> Register Product
+      </button>
+
+      <div class="nav-section-label">Tools</div>
+      <button class="nav-item" data-view="transfer" id="nav-transfer">
+        <span class="nav-icon">🔄</span> Transfer
+      </button>
+      <button class="nav-item" data-view="scan" id="nav-scan">
+        <span class="nav-icon">📲</span> Scan QR
+      </button>
+      <button class="nav-item" data-view="verify" id="nav-verify">
+        <span class="nav-icon">🔐</span> Verify Chain
+      </button>
+      <button class="nav-item" data-view="map" id="nav-map">
+        <span class="nav-icon">🗺️</span> Route Map
+      </button>
+      <button class="nav-item" data-view="notifications" id="nav-notifications">
+        <span class="nav-icon">🔔</span> Notifications
+      </button>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div id="sidebar-user-info"></div>
+      <div class="chain-status" style="margin-top:8px">
+        <div class="chain-dot"></div>
+        <span>Blockchain Active</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Mobile overlay -->
+  <div id="sidebar-overlay"></div>
+
+  <!-- ── Main Wrapper ────────────────────────────────────── -->
+  <div class="main-wrapper">
+
+    <!-- Top Bar -->
+    <header class="top-bar">
+      <button class="top-bar-btn" id="menu-toggle" aria-label="Toggle sidebar">☰</button>
+      <span class="top-bar-logo">⛓️ ChainTrack</span>
+
+      <div class="top-search">
+        <span class="top-search-icon">🔍</span>
+        <input type="text" placeholder="Search products..." id="global-search"
+               oninput="handleGlobalSearch(this.value)" />
+      </div>
+
+      <div class="top-bar-right">
+        <button class="top-bar-btn" id="darkmode-btn" title="Toggle dark mode" onclick="DarkMode.toggle()">🌙</button>
+        <button class="top-bar-btn" title="Route Map" onclick="Router.navigate('map')">🗺️</button>
+        <button class="top-bar-btn" title="Notifications" onclick="Router.navigate('notifications')">🔔</button>
+        <button class="top-bar-btn" title="QR Scan" onclick="Router.navigate('scan')">📲</button>
+        <div class="user-avatar" id="user-avatar-btn" title="User" onclick="showUserMenu()">U</div>
+      </div>
+    </header>
+
+    <!-- Main Content (SPA renders here) -->
+    <main id="main-content">
+      <!-- Rendered by JS -->
+    </main>
+
+  </div><!-- /.main-wrapper -->
+</div><!-- /.app-shell -->
+
+<!-- User Menu Dropdown -->
+<div id="user-menu" class="user-menu" style="display:none">
+  <div class="user-menu-item" onclick="Router.navigate('analytics');hideUserMenu()">📈 Analytics</div>
+  <div class="user-menu-divider"></div>
+  <div class="user-menu-item danger" onclick="Auth.logout()">🚪 Logout</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     NOTIFICATION TOAST
+═══════════════════════════════════════════════════════ -->
+<div class="notification" id="notification" role="alert" aria-live="polite">
+  <span id="notif-icon">✅</span>
+  <span id="notif-message"></span>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     LOADING OVERLAY
+═══════════════════════════════════════════════════════ -->
+<div id="loading-overlay" role="dialog" aria-label="Processing">
+  <div class="loading-card">
+    <div class="loading-spinner"></div>
+    <div class="loading-title">⛏️ Mining Block</div>
+    <div id="loading-message">Processing...</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     SCRIPTS
+═══════════════════════════════════════════════════════ -->
+<script src="js/blockchain.js"></script>
+<script src="js/storage.js"></script>
+<script src="js/app.js"></script>
+<script src="js/dashboard.js"></script>
+<script src="js/products.js"></script>
+<script src="js/detail.js"></script>
+<script src="js/transfer.js"></script>
+<script src="js/extras.js"></script>
+
+<script>
+  // ── Role Picker ──────────────────────────────────────────
+  function selectRole(role, el) {
+    document.querySelectorAll('.role-option').forEach(o => o.classList.remove('selected'));
+    el.classList.add('selected');
+    document.getElementById('login-role').value = role;
+  }
+  // Default selection
+  document.addEventListener('DOMContentLoaded', () => {
+    const firstRole = document.querySelector('.role-option');
+    if (firstRole) firstRole.classList.add('selected');
+  });
+
+  // ── User Menu ────────────────────────────────────────────
+  function showUserMenu() {
+    const menu = document.getElementById('user-menu');
+    const avatar = document.getElementById('user-avatar-btn');
+    const rect = avatar.getBoundingClientRect();
+    menu.style.top = (rect.bottom + 8) + 'px';
+    menu.style.right = (window.innerWidth - rect.right) + 'px';
+    menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+  }
+  function hideUserMenu() { document.getElementById('user-menu').style.display = 'none'; }
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('#user-avatar-btn') && !e.target.closest('#user-menu')) hideUserMenu();
+  });
+  window.showUserMenu = showUserMenu;
+  window.hideUserMenu = hideUserMenu;
+
+  // ── Global Search ────────────────────────────────────────
+  function handleGlobalSearch(query) {
+    if (!query) return;
+    Router.navigate('products');
+    setTimeout(() => {
+      const searchInput = document.getElementById('product-search');
+      if (searchInput) { searchInput.value = query; filterProducts(query); }
+    }, 300);
+  }
+
+  // ── QR Hash URL Routing ──────────────────────────────────
+  function checkUrlHash() {
+    const hash = window.location.hash;
+    if (hash.startsWith('#product:')) {
+      const productId = hash.replace('#product:', '');
+      AppState.selectedProductId = productId;
+      Router.navigate('detail', { productId });
+    }
+  }
+
+  // ── Init ─────────────────────────────────────────────────
+  document.addEventListener('DOMContentLoaded', async () => {
+    DarkMode.init();
+    await initApp();
+    checkAuth();
+    checkUrlHash();
+  });
+
+  window.addEventListener('hashchange', checkUrlHash);
+  window.handleGlobalSearch = handleGlobalSearch;
+</script>
+
+</body>
+</html>
