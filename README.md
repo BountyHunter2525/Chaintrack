@@ -163,10 +163,10 @@ Block #3 (Customer)
 
 ## 👥 Team
 
-| Member | Role |
-|--------|------|
-| Member 1 | Blockchain engine, storage layer, product flow |
-| Member 2 | UI/UX design, analytics, map, PDF export |
+| Member        | Role |
+|--------|------|-------
+| Keshav Sethi  | Blockchain engine, storage layer, product flow |
+| Pushkar Shah  | UI/UX design, analytics, map, PDF export |
 
 ---
 
