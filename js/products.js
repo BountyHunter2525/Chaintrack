@@ -4,6 +4,10 @@
 
 async function renderProducts() {
   const products = await ProductStore.getAll();
+  const chains = await Promise.all(products.map(p => ChainStore.getChain(p.id)));
+  const chainMap = {};
+  products.forEach((p, i) => { chainMap[p.id] = chains[i]; });
+
   const main = document.getElementById('main-content');
 
   main.innerHTML = `
@@ -41,7 +45,7 @@ async function renderProducts() {
           <p>Start by registering your first product on the blockchain</p>
           <button class="btn btn-primary" onclick="Router.navigate('add-product')">Register First Product</button>
         </div>
-      ` : products.map(p => renderProductCard(p)).join('')}
+      ` : products.map(p => renderProductCard(p, chainMap[p.id])).join('')}
     </div>
   `;
 
@@ -49,8 +53,7 @@ async function renderProducts() {
   window._allProducts = products;
 }
 
-function renderProductCard(p) {
-  const chain = ChainStore.getChain(p.id);
+function renderProductCard(p, chain) {
   const blockCount = chain ? chain.chain.length : 1;
   const roleInfo = SUPPLY_CHAIN_ROLES.find(r => r.role === p.currentRole) || SUPPLY_CHAIN_ROLES[0];
 

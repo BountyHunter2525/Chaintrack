@@ -6,7 +6,7 @@ async function renderTransfer(params) {
   const productId = params?.productId || AppState.selectedProductId;
   if (!productId) {
     // Show product picker
-    const products = ProductStore.getAll().filter(p => getNextRole(p.currentRole));
+    const products = (await ProductStore.getAll()).filter(p => getNextRole(p.currentRole));
     const main = document.getElementById('main-content');
     main.innerHTML = `
       <div class="page-header">
@@ -47,6 +47,7 @@ async function renderTransfer(params) {
   }
 
   const currentRoleInfo = SUPPLY_CHAIN_ROLES.find(r => r.role === product.currentRole);
+  const chain = await ChainStore.getChain(productId);
 
   const main = document.getElementById('main-content');
   main.innerHTML = `
@@ -149,7 +150,7 @@ async function renderTransfer(params) {
         </div>
         <div class="info-card mt-4">
           <h4>⛓️ Chain Info</h4>
-          ${renderMiniChain(product)}
+          ${renderMiniChain(product, chain)}
         </div>
         <div class="info-card mt-4 warning-card">
           <h4>⚠️ Important</h4>
@@ -160,8 +161,7 @@ async function renderTransfer(params) {
   `;
 }
 
-function renderMiniChain(product) {
-  const chain = ChainStore.getChain(product.id);
+function renderMiniChain(product, chain) {
   if (!chain) return '<p>No chain data</p>';
 
   return `
@@ -336,7 +336,7 @@ async function renderVerify(params) {
 
   // Verify all products
   for (const p of products) {
-    const chain = ChainStore.getChain(p.id);
+    const chain = await ChainStore.getChain(p.id);
     const statusEl = document.getElementById(`vstatus-${p.id}`);
     if (!statusEl) continue;
 

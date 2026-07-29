@@ -64,7 +64,7 @@ async function renderDashboard() {
           <span class="chain-health" id="chain-health-badge">Verifying...</span>
         </div>
         <div class="blockchain-visual" id="blockchain-visual">
-          ${renderBlockchainViz(products)}
+          ${await renderBlockchainViz(products)}
         </div>
       </div>
 
@@ -128,17 +128,18 @@ async function renderDashboard() {
   }, 100);
 }
 
-function renderBlockchainViz(products) {
+async function renderBlockchainViz(products) {
   if (products.length === 0) {
     return '<div class="empty-chain">No blocks yet. Register a product to start.</div>';
   }
 
   // Show last 3 products' latest blocks in a chain
   const recentProducts = products.slice(-3);
+  const chains = await Promise.all(recentProducts.map(p => ChainStore.getChain(p.id)));
   let html = '<div class="chain-blocks">';
   
   recentProducts.forEach((p, i) => {
-    const chain = ChainStore.getChain(p.id);
+    const chain = chains[i];
     const blockCount = chain ? chain.chain.length : 1;
     const lastBlock = chain ? chain.getLatestBlock() : null;
     
@@ -204,7 +205,7 @@ async function verifyChainHealth(products) {
 
   let allValid = true;
   for (const p of products) {
-    const chain = ChainStore.getChain(p.id);
+    const chain = await ChainStore.getChain(p.id);
     if (chain && chain.chain.length > 1) {
       // Quick linkage check (skip full hash recompute for demo)
       for (let i = 1; i < chain.chain.length; i++) {
