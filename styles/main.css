@@ -2462,3 +2462,64 @@ body {
   .role-picker { grid-template-columns: repeat(2, 1fr); }
 }
 
+/* ═══════════════════════════════════════════════════════════
+   SKELETON LOADER
+═══════════════════════════════════════════════════════════ */
+.skeleton-page {
+  padding: 4px 0;
+  animation: fadeIn 0.15s ease;
+}
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--bg-tertiary) 25%,
+    var(--bg-hover, #e8ecf0) 50%,
+    var(--bg-tertiary) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+  border-radius: var(--radius-sm);
+}
+
+@keyframes shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.skeleton-title {
+  height: 32px;
+  width: 240px;
+  margin-bottom: 10px;
+  border-radius: var(--radius-sm);
+}
+
+.skeleton-subtitle {
+  height: 16px;
+  width: 160px;
+  margin-bottom: 28px;
+  border-radius: var(--radius-sm);
+}
+
+.skeleton-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.skeleton-card {
+  height: 110px;
+  border-radius: var(--radius-lg);
+}
+
+.skeleton-block {
+  height: 260px;
+  border-radius: var(--radius-lg);
+}
+
+#main-content {
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+

@@ -25,30 +25,57 @@ const Router = {
     'notifications': (p) => renderNotificationsPanel(p)
   },
 
-  navigate(view, params = {}) {
+  _navId: 0, // tracks current navigation to cancel stale renders
+
+  async navigate(view, params = {}) {
+    const navId = ++this._navId;            // bump ID for this navigation
     AppState.currentView = view;
     if (params.productId) AppState.selectedProductId = params.productId;
 
-    // Update nav highlights
+    // Update nav highlights immediately
     document.querySelectorAll('.nav-item').forEach(el => {
       el.classList.toggle('active', el.dataset.view === view);
     });
 
-    // Render the view
-    const renderFn = this.routes[view];
-    if (renderFn) {
-      const main = document.getElementById('main-content');
-      main.style.opacity = '0';
-      main.style.transform = 'translateY(12px)';
-      setTimeout(() => {
-        renderFn(params);
-        main.style.opacity = '1';
-        main.style.transform = 'translateY(0)';
-      }, 150);
+    // Show skeleton loader instantly — no wait
+    const main = document.getElementById('main-content');
+    if (main) {
+      main.innerHTML = `
+        <div class="skeleton-page">
+          <div class="skeleton skeleton-title"></div>
+          <div class="skeleton skeleton-subtitle"></div>
+          <div class="skeleton-grid">
+            <div class="skeleton skeleton-card"></div>
+            <div class="skeleton skeleton-card"></div>
+            <div class="skeleton skeleton-card"></div>
+            <div class="skeleton skeleton-card"></div>
+          </div>
+          <div class="skeleton skeleton-block"></div>
+        </div>`;
     }
 
     // Close mobile sidebar
     document.getElementById('sidebar')?.classList.remove('open');
+
+    // Await the actual render (Supabase fetch happens here)
+    const renderFn = this.routes[view];
+    if (renderFn) {
+      await renderFn(params);
+    }
+
+    // If another navigate() was called while we were awaiting, don't fade in stale content
+    if (navId !== this._navId) return;
+
+    // Fade in
+    if (main) {
+      main.style.opacity = '0';
+      main.style.transform = 'translateY(8px)';
+      requestAnimationFrame(() => {
+        main.style.transition = 'opacity 0.2s ease, transform 0.2s ease';
+        main.style.opacity = '1';
+        main.style.transform = 'translateY(0)';
+      });
+    }
   }
 };
 
