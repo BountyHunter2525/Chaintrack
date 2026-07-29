@@ -3,9 +3,9 @@
 // ============================================================
 
 async function renderDashboard() {
-  const stats = await StatsHelper.getStats();
-  const activities = ActivityStore.getAll();
-  const products = ProductStore.getAll();
+  const stats      = await StatsHelper.getStats();
+  const activities = await ActivityStore.getAll();
+  const products   = await ProductStore.getAll();
 
   const main = document.getElementById('main-content');
   main.innerHTML = `

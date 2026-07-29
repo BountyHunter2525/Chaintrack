@@ -36,7 +36,7 @@ async function renderTransfer(params) {
     return;
   }
 
-  const product = ProductStore.getById(productId);
+  const product = await ProductStore.getById(productId);
   if (!product) { showNotification('Product not found', 'error'); Router.navigate('products'); return; }
 
   const nextRole = getNextRole(product.currentRole);
@@ -187,7 +187,7 @@ async function handleTransfer(event, productId) {
     return;
   }
 
-  const product = ProductStore.getById(productId);
+  const product = await ProductStore.getById(productId);
   if (!product) return;
 
   const nextRole = getNextRole(product.currentRole);
@@ -199,7 +199,7 @@ async function handleTransfer(event, productId) {
   document.getElementById('mining-preview-t').style.display = 'flex';
 
   try {
-    const chain = ChainStore.getChain(productId);
+    const chain = await ChainStore.getChain(productId);
     if (!chain) throw new Error('Chain not found');
 
     const blockData = {
@@ -248,8 +248,8 @@ async function handleTransfer(event, productId) {
 }
 
 // ─── QR Scan Simulation ───────────────────────────────────
-function renderScan() {
-  const products = ProductStore.getAll();
+async function renderScan() {
+  const products = await ProductStore.getAll();
   const main = document.getElementById('main-content');
 
   main.innerHTML = `
@@ -296,10 +296,10 @@ function renderScan() {
   `;
 }
 
-function handleScan() {
+async function handleScan() {
   const val = document.getElementById('scan-input').value.trim();
   if (!val) { showNotification('Enter a product ID', 'warning'); return; }
-  const product = ProductStore.getById(val);
+  const product = await ProductStore.getById(val);
   if (!product) { showNotification('Product not found on blockchain', 'error'); return; }
   Router.navigate('detail', { productId: val });
 }
@@ -307,7 +307,7 @@ function handleScan() {
 // ─── Verify View ──────────────────────────────────────────
 async function renderVerify(params) {
   const productId = params?.productId || AppState.selectedProductId;
-  const products = ProductStore.getAll();
+  const products = await ProductStore.getAll();
   const main = document.getElementById('main-content');
 
   main.innerHTML = `

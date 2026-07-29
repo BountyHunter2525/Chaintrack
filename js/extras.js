@@ -30,8 +30,8 @@ const DarkMode = {
 window.DarkMode = DarkMode;
 
 // ─── Notifications Panel ──────────────────────────────────
-function renderNotificationsPanel() {
-  const activities = ActivityStore.getAll();
+async function renderNotificationsPanel() {
+  const activities = await ActivityStore.getAll();
   const main = document.getElementById('main-content');
 
   main.innerHTML = `

@@ -6,14 +6,14 @@ async function renderDetail(params) {
   const productId = params?.productId || AppState.selectedProductId;
   if (!productId) { Router.navigate('products'); return; }
 
-  const product = ProductStore.getById(productId);
+  const product = await ProductStore.getById(productId);
   if (!product) {
     showNotification('Product not found', 'error');
     Router.navigate('products');
     return;
   }
 
-  const chain = ChainStore.getChain(productId);
+  const chain = await ChainStore.getChain(productId);
   const blocks = chain ? chain.chain : [];
   const currentRoleIdx = getRoleIndex(product.currentRole);
   const nextRole = getNextRole(product.currentRole);

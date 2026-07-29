@@ -2,8 +2,8 @@
 // products.js — Products List + Add Product
 // ============================================================
 
-function renderProducts() {
-  const products = ProductStore.getAll();
+async function renderProducts() {
+  const products = await ProductStore.getAll();
   const main = document.getElementById('main-content');
 
   main.innerHTML = `
