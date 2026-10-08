@@ -23,7 +23,8 @@ const Router = {
     'analytics':     (p) => renderAnalytics(p),
     'map':           (p) => renderMap(p),
     'notifications': (p) => renderNotificationsPanel(p),
-    'explorer':      (p) => renderExplorer(p)
+    'explorer':      (p) => renderExplorer(p),
+    'escrow':        (p) => renderEscrow(p)
   },
 
   _navId: 0, // tracks current navigation to cancel stale renders

@@ -249,6 +249,12 @@ async function handleTransfer(event, productId) {
     });
 
     if (window.hideLoading) window.hideLoading();
+    
+    // Auto-release escrow if product is now delivered
+    if (window.checkAndAutoReleaseEscrow) {
+      await checkAndAutoReleaseEscrow(productId, nextRole.status);
+    }
+
     showNotification(`✅ Transferred to ${nextRole.role}: ${newOwner}!`, 'success');
     Router.navigate('detail', { productId });
   } catch (err) {

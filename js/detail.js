@@ -151,10 +151,11 @@ async function renderDetail(params) {
     </div>
   `;
 
-  // Generate QR Code
+  // Generate QR Code + inject escrow panel
   setTimeout(() => {
     generateQRCode(product.id, product.name);
     verifyAuthenticity(product.id, chain);
+    if (window.injectEscrowPanel) injectEscrowPanel(product.id);
   }, 200);
 }
 
