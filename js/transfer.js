@@ -259,7 +259,9 @@ async function handleTransfer(event, productId) {
   }
 }
 
-// ─── QR Scan Simulation ───────────────────────────────────
+// ─── QR Scan (Real Camera) ────────────────────────────────
+let _html5QrScanner = null; // keep reference to stop it on nav away
+
 async function renderScan() {
   const products = await ProductStore.getAll();
   const main = document.getElementById('main-content');
@@ -268,22 +270,26 @@ async function renderScan() {
     <div class="page-header">
       <div>
         <h1 class="page-title">📲 Scan QR Code</h1>
-        <p class="page-subtitle">Scan or enter a product ID to track it</p>
+        <p class="page-subtitle">Point your camera at a ChainTrack QR code to instantly track a product</p>
       </div>
     </div>
 
     <div class="scan-layout">
+      <!-- Camera Scanner Card -->
       <div class="scan-card">
-        <div class="scanner-frame">
-          <div class="scanner-corner tl"></div>
-          <div class="scanner-corner tr"></div>
-          <div class="scanner-corner bl"></div>
-          <div class="scanner-corner br"></div>
-          <div class="scanner-line"></div>
-          <div class="scanner-icon">📱</div>
-          <p class="scanner-text">Camera scanner simulation</p>
+        <div id="qr-reader-container">
+          <div id="qr-camera-status" style="text-align:center; padding: 16px 0; color: var(--text-secondary); font-size:14px;">
+            📷 Loading camera...
+          </div>
+          <div id="qr-reader" style="width:100%; border-radius: 12px; overflow:hidden;"></div>
         </div>
-        <p class="scan-hint">Or enter product ID manually:</p>
+
+        <div id="qr-scan-result" style="display:none; margin-top:16px;" class="card" style="padding:16px;">
+        </div>
+
+        <div class="form-divider" style="margin: 20px 0;"></div>
+
+        <p class="scan-hint" style="margin-bottom:10px;">Or enter a Product ID manually:</p>
         <div class="scan-input-row">
           <input type="text" class="form-input" id="scan-input" placeholder="e.g. PROD-ABC123..." list="product-ids" />
           <datalist id="product-ids">
@@ -292,8 +298,8 @@ async function renderScan() {
           <button class="btn btn-primary" onclick="handleScan()">🔍 Lookup</button>
         </div>
 
-        <div class="form-divider"></div>
-        <p class="scan-hint">Or click a demo product:</p>
+        <div class="form-divider" style="margin: 20px 0;"></div>
+        <p class="scan-hint" style="margin-bottom:10px;">Or click a product to track:</p>
         <div class="scan-demo-products">
           ${products.map(p => `
             <div class="scan-demo-item" onclick="Router.navigate('detail', {productId:'${p.id}'})">
@@ -306,6 +312,111 @@ async function renderScan() {
       </div>
     </div>
   `;
+
+  // Start real camera scanner
+  _startQrCamera();
+}
+
+function _startQrCamera() {
+  if (!window.Html5Qrcode) {
+    document.getElementById('qr-camera-status').textContent = '⚠️ Camera scanner library not loaded. Use manual lookup below.';
+    return;
+  }
+
+  // Stop any existing scanner
+  if (_html5QrScanner) {
+    _html5QrScanner.stop().catch(() => {});
+    _html5QrScanner = null;
+  }
+
+  _html5QrScanner = new Html5Qrcode('qr-reader');
+
+  const config = {
+    fps: 10,
+    qrbox: { width: 250, height: 250 },
+    aspectRatio: 1.0
+  };
+
+  document.getElementById('qr-camera-status').innerHTML = `
+    <button class="btn btn-primary" onclick="_requestCameraAndScan()" style="margin: 8px 0;">
+      📷 Start Camera Scanner
+    </button>
+    <p style="font-size:12px; color:var(--text-muted); margin-top:8px;">Click to activate your camera. Browser will ask for permission.</p>
+  `;
+}
+
+async function _requestCameraAndScan() {
+  const statusEl = document.getElementById('qr-camera-status');
+  statusEl.innerHTML = `<div class="spinner-sm" style="display:inline-block;"></div> Requesting camera access...`;
+
+  try {
+    await _html5QrScanner.start(
+      { facingMode: 'environment' }, // Use back camera on mobile
+      { fps: 10, qrbox: { width: 250, height: 250 } },
+      async (decodedText) => {
+        // On successful scan
+        await _html5QrScanner.stop();
+        _html5QrScanner = null;
+
+        // The QR code value is the product URL or just the product ID
+        let productId = decodedText;
+        // If the QR encodes a full URL like "...#product:PROD-xxx", extract the ID
+        if (decodedText.includes('#product:')) {
+          productId = decodedText.split('#product:')[1];
+        }
+        // If it encodes just the productId directly
+        productId = productId.trim();
+
+        const resultEl = document.getElementById('qr-scan-result');
+        const product = await ProductStore.getById(productId);
+
+        if (product) {
+          resultEl.style.display = 'block';
+          resultEl.innerHTML = `
+            <div style="display:flex; align-items:center; gap:12px; padding:12px;">
+              <span style="font-size:32px;">${product.imageEmoji}</span>
+              <div style="flex:1;">
+                <div style="font-weight:700; font-size:16px;">${product.name}</div>
+                <div style="font-size:12px; color:var(--text-muted);">${product.id}</div>
+              </div>
+              ${getStatusBadge(product.status)}
+            </div>
+            <div style="padding: 0 12px 12px; display:flex; gap:8px; flex-wrap:wrap;">
+              <button class="btn btn-primary" onclick="Router.navigate('detail', {productId:'${product.id}'})">📦 View Full Journey</button>
+              <button class="btn btn-ghost" onclick="Router.navigate('verify', {productId:'${product.id}'})">🔐 Verify Authenticity</button>
+              <button class="btn btn-ghost" onclick="_startQrCamera()">🔄 Scan Again</button>
+            </div>
+          `;
+          showNotification(`✅ Found: ${product.name}`, 'success');
+        } else {
+          resultEl.style.display = 'block';
+          resultEl.innerHTML = `
+            <div style="padding:16px; color: var(--accent-red);">
+              ❌ Product ID <code>${productId}</code> not found on the blockchain.
+              <button class="btn btn-ghost" style="margin-top:8px;" onclick="_startQrCamera()">🔄 Scan Again</button>
+            </div>
+          `;
+          showNotification('Product not found on blockchain', 'error');
+        }
+      },
+      (errorMsg) => {
+        // Scanning frame errors are normal — suppress them
+      }
+    );
+    statusEl.innerHTML = `
+      <div style="color: #10b981; font-size:13px; margin-bottom:8px;">🟢 Camera active — point at a QR code</div>
+      <button class="btn btn-ghost" onclick="_html5QrScanner.stop().then(() => { _html5QrScanner=null; _startQrCamera(); })">⏹ Stop Camera</button>
+    `;
+  } catch (err) {
+    console.warn('Camera error:', err);
+    statusEl.innerHTML = `
+      <div style="color: var(--accent-red); font-size:13px; margin-bottom:8px;">
+        ⚠️ Camera access denied or unavailable.<br>
+        <small>${err.message || 'Please allow camera permissions in your browser.'}</small>
+      </div>
+      <button class="btn btn-ghost" onclick="_requestCameraAndScan()">🔄 Try Again</button>
+    `;
+  }
 }
 
 async function handleScan() {
@@ -315,6 +426,21 @@ async function handleScan() {
   if (!product) { showNotification('Product not found on blockchain', 'error'); return; }
   Router.navigate('detail', { productId: val });
 }
+
+// Stop camera when navigating away
+const _origNavigate = Router.navigate.bind(Router);
+Router.navigate = async function(view, params) {
+  if (_html5QrScanner) {
+    try { await _html5QrScanner.stop(); } catch(e) {}
+    _html5QrScanner = null;
+  }
+  return _origNavigate(view, params);
+};
+
+window._startQrCamera = _startQrCamera;
+window._requestCameraAndScan = _requestCameraAndScan;
+
+
 
 // ─── Verify View ──────────────────────────────────────────
 async function renderVerify(params) {
