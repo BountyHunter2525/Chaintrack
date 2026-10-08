@@ -168,7 +168,6 @@ function generateProductId() {
 // ─── App Init ─────────────────────────────────────────────
 async function initApp() {
   await seedDemoData();
-  Router.navigate('dashboard');
   setupEventListeners();
 }
 

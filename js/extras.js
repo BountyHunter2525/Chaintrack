@@ -269,8 +269,8 @@ async function initMap(productId) {
   }).setView([20, 78], 3);
   window._leafletMap = map;
 
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '© OpenStreetMap contributors',
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
     maxZoom: 18,
     noWrap: true
   }).addTo(map);
@@ -554,6 +554,33 @@ function hideLoginScreen(user) {
         </div>
       </div>
     `;
+  }
+
+  // Role-Based Access Control (RBAC) - Sidebar adjustments
+  const rbac = {
+    Manufacturer: ['dashboard', 'analytics', 'products', 'add-product', 'transfer', 'scan', 'verify', 'map', 'notifications', 'explorer'],
+    Distributor:  ['dashboard', 'products', 'transfer', 'scan', 'verify', 'map', 'notifications', 'explorer'],
+    Retailer:     ['dashboard', 'products', 'transfer', 'scan', 'verify', 'map', 'notifications', 'explorer'],
+    Customer:     ['scan', 'verify', 'map', 'notifications', 'explorer']
+  };
+
+  const allowedViews = rbac[user.role] || [];
+  
+  // Hide/show sidebar buttons based on allowed views
+  document.querySelectorAll('.nav-item').forEach(btn => {
+    const view = btn.dataset.view;
+    if (allowedViews.includes(view)) {
+      btn.style.display = 'flex';
+    } else {
+      btn.style.display = 'none';
+    }
+  });
+
+  // If the user is on a restricted view (like dashboard for a Customer), redirect them
+  if (AppState.currentView && !allowedViews.includes(AppState.currentView)) {
+    Router.navigate(allowedViews[0]); // fallback to first allowed view
+  } else if (!AppState.currentView) {
+    Router.navigate(allowedViews[0]);
   }
 }
 

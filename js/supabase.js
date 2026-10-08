@@ -8,7 +8,7 @@ const SUPABASE_URL = 'https://zbzptwinibxwrgiobsuq.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpienB0d2luaWJ4d3JnaW9ic3VxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzMzQ0NTEsImV4cCI6MjEwMDkxMDQ1MX0.8rorvd-VRU2LPWs5WfQwsiiGIOpU81KtDqDxsqBOX_M';
 
 // ─── Supabase REST helper ──────────────────────────────────
-const DB = {
+const DB = {  
   async request(path, method = 'GET', body = null, params = '') {
     const url = `${SUPABASE_URL}/rest/v1/${path}${params}`;
     const opts = {
