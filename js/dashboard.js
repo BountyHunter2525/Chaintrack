@@ -1,8 +1,11 @@
 // ============================================================
-// dashboard.js — Dashboard View
+// dashboard.js — Dashboard Helpers (renderDashboard is in portals.js)
 // ============================================================
 
-async function renderDashboard() {
+// NOTE: renderDashboard() is now defined in portals.js and is role-aware.
+// This file contains shared helpers used by portals.js.
+
+async function _legacyRenderDashboard() {
   const [stats, activities, products] = await Promise.all([
     StatsHelper.getStats(),
     ActivityStore.getAll(),
@@ -246,4 +249,7 @@ async function verifyChainHealth(products) {
   badge.className = `chain-health ${allValid ? 'healthy' : 'warning'}`;
 }
 
-window.renderDashboard = renderDashboard;
+window.renderBlockchainViz  = renderBlockchainViz;
+window.renderPipelineChart  = renderPipelineChart;
+window.verifyChainHealth    = verifyChainHealth;
+// Note: window.renderDashboard is defined in portals.js
